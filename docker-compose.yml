@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    restart: always
+    ports:
+      - '8080:80'
+      - '3012:3012'
+    volumes:
+      - /root/vaultwarden/data:/data
+      - /root/ssl/:/home/ssl/
+    environment:
+      DOMAIN: 'YOURDOMIAN'
+      SIGNUPS_ALLOWED: 'true'
+      WEBSOCKET_ENABLED: 'true'
+      I_REALLY_WANT_VOLATILE_STORAGE: 'true'
+      ROCKET_TLS: '{certs="/home/ssl/cer",key="/home/ssl/key"}'
+
+  duplicati:
+    image: docker.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Shanghai
+      - CLI_ARGS= #optional
+    volumes:
+      - /root/duplicati/config:/config
+      - /root/duplicati/backups:/backups
+      - /root/vaultwarden/data:/source
+    ports:
+      - 8200:8200
+    restart: unless-stopped
+    privileged: true
+    user: root
